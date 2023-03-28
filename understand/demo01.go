@@ -1,5 +1,0 @@
-package understand
-
-func main() {
-
-}
