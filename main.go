@@ -1,7 +1,11 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
+	"net"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,13 +26,38 @@ var albums = []album{
 }
 
 func main() {
-	router := gin.Default()
-	router.GET("/albums", getAlbums)
-	router.GET("/albums/:id", getAlbumByID)
-	router.POST("/albums", postAlbums)
+	//router := gin.Default()
+	//router.GET("/albums", getAlbums)
+	//router.GET("/albums/:id", getAlbumByID)
+	//router.POST("/albums", postAlbums)
+	//
+	//router.Run("localhost:8080")
 
-	router.Run("localhost:8080")
-
+	dial, err := net.Dial("tcp", "localhost:8888")
+	if err != nil {
+		fmt.Println("连接失败")
+		return
+	}
+	fmt.Println("连接成功，请输入要发送的数据")
+	defer dial.Close()
+	for {
+		reader := bufio.NewReader(os.Stdin)
+		readString, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("读取控制台输入的数据失败")
+			return
+		}
+		if readString == "exit\n" {
+			fmt.Println("停止输入，断开连接")
+			return
+		}
+		_, err = dial.Write([]byte(readString))
+		if err != nil {
+			fmt.Println("发送给服务端失败，断开连接")
+			return
+		}
+		fmt.Printf("客户端发送成功，message is %s", readString)
+	}
 }
 
 // getAlbums responds with the list of all albums as JSON.
